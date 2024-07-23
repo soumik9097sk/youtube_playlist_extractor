@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Playlist Extractor</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #333; }
+        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        #result { margin-top: 20px; }
+        .video-item { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>YouTube Playlist Extractor</h1>
+    <input type="text" id="playlistUrl" placeholder="Enter YouTube playlist URL">
+    <button onclick="extractPlaylist()">Extract Playlist</button>
+    <div id="result"></div>
+
+    <script>
+        async function extractPlaylist() {
+            const playlistUrl = document.getElementById('playlistUrl').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch('http://localhost:8000/extract-playlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: playlistUrl }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                displayResults(data.playlist_info);
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+
+        function displayResults(playlistInfo) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+
+            if (playlistInfo.length === 0) {
+                resultDiv.innerHTML = 'No videos found in the playlist.';
+                return;
+            }
+
+            playlistInfo.forEach(video => {
+                const videoDiv = document.createElement('div');
+                videoDiv.className = 'video-item';
+                videoDiv.innerHTML = `
+                    <strong>${video.title}</strong><br>
+                    <a href="${video.url}" target="_blank">${video.url}</a>
+                `;
+                resultDiv.appendChild(videoDiv);
+            });
+        }
+    </script>
+</body>
+</html>
